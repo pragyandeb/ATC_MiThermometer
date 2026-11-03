@@ -4,7 +4,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Bake in house defaults
         run: |
           F=src/app.c
@@ -16,8 +16,10 @@ jobs:
           grep -q 'advertising_interval = 144' $F
           grep -q 'measure_interval = 25' $F
           grep -q 'averaging_measurements = 8,' $F
+      - name: Download compiler
+        run: make pre-build
       - name: Build
-        run: make -s -j PROJECT_NAME=ATC_v59_house POJECT_DEF="-DDEVICE_TYPE=DEVICE_LYWSD03MMC"
+        run: make -j main-build PROJECT_NAME=ATC_v59_house POJECT_DEF="-DDEVICE_TYPE=DEVICE_LYWSD03MMC"
       - uses: actions/upload-artifact@v4
         with:
           name: ATC_v59_house
