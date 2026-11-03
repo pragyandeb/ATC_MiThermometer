@@ -1,0 +1,24 @@
+name: Build MiTemp firmware
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bake in house defaults
+        run: |
+          F=src/app.c
+          sed -i 's/\.flg\.temp_F_or_C = false,/.flg.temp_F_or_C = true,/' $F
+          sed -i 's/\.flg\.lp_measures = true,/.flg.lp_measures = false,/' $F
+          sed -i '/#elif DEVICE_TYPE == DEVICE_LYWSD03MMC$/,/#elif/{s/\.advertising_interval = 40,/.advertising_interval = 144,/;s/\.measure_interval = 4,/.measure_interval = 25,/;s/\.averaging_measurements = 180,/.averaging_measurements = 8,/}' $F
+          grep -q 'temp_F_or_C = true' $F
+          grep -q 'lp_measures = false' $F
+          grep -q 'advertising_interval = 144' $F
+          grep -q 'measure_interval = 25' $F
+          grep -q 'averaging_measurements = 8,' $F
+      - name: Build
+        run: make -s -j PROJECT_NAME=ATC_v59_house POJECT_DEF="-DDEVICE_TYPE=DEVICE_LYWSD03MMC"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ATC_v59_house
+          path: ATC_v59_house.bin
